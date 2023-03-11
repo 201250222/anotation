@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>裁判文书分析器</title>
+    <script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+    <script>
+            function fun1() {
+                var obj=document.getElementById("lis");
+                obj.innerHTML='';
+        $.ajax(
+            {
+                url:"/posttest",
+                type:"POST",
+                data:{"post1":$("#post1").val()},
+
+                dataType:"json",
+                success:function (data) {
+                    for ( item in data){
+                        console.log(data)
+                        var tagName=JSON.stringify(item)
+                        var tagValue = JSON.stringify(data[item])
+                        $("#lis").append($("<b></b>").text(item+" : "));
+                        if(item=="法院"){
+                            for (court in data[item]){
+                                $("#lis").append($("<input type='checkbox' name='courts' id='"+item+"' value='"+data[item][court]+"' />"));
+                                $("#lis").append($("<label></label>").text(data[item][court]));
+                            }
+                        }
+                        else{
+                        $("#lis").append($("<input type='checkbox' name='userSelect' id='"+item+"' value='"+data[item]+"' />"));
+                        $("#lis").append($("<label></label>").text(data[item]));
+                        }
+                        $("#lis").append($("<br>"));
+                    }
+
+                    /*
+                    *   全选
+                    */
+                    $("#lis").append($("<input type='checkbox' name='selAll' id='selAll' value='全选'>全选</input>"));
+                    var selAll = document.getElementById("selAll")
+                    selAll.onclick = function(){
+                        var value = selAll.checked
+                        var boxes = document.getElementsByName("userSelect")
+                        var courts = document.getElementsByName("courts")
+                        for(var i=0;i<boxes.length;++i){
+                            var abox = boxes[i];
+                            abox.checked = value;
+                        }
+                        for(var i=0;i<courts.length;++i){
+                            var acourt = courts[i];
+                            acourt.checked = value;
+                        }
+                    }
+
+                    /*******************************************保存代码*****************************************/
+                    $("#lis").append($("<br>"))
+                    $("#lis").append($("<input type='button' name='store' id='storebtn' value='保存所选择的标注'/>"));  //保存按钮
+                    var jsonObj = {
+                    }   //用于保存被选中的标注的JSON对象      //changed
+                    var storebtn = document.getElementById("storebtn")   //获取保存按钮
+                    storebtn.onclick = function(){                       //保存按钮被点击后执行
+                        var boxes = document.getElementsByName("userSelect")   //获取所有的checkbox对象
+                        for(var i=0;i<boxes.length;++i){
+                            if(boxes[i].checked){
+                                jsonObj[boxes[i].id] = boxes[i].value       //changed
+                            }
+                        }//被checked项加入json对象中
+                        //
+                        //处理法院
+                        jsonObj["法院"] = {}             //added
+                        var courts = document.getElementsByName("courts")
+                        var num = 1
+                        for(var i=0;i<courts.length;++i){
+                            if(courts[i].checked){
+                                jsonObj["法院"][String(num)] = courts[i].value
+                                num = num + 1
+                            }
+                        }//被checked项加入json对象中
+                        //
+                        //
+                        const strjson = JSON.stringify([jsonObj])  //json对象转为字符串
+
+                        console.log(strjson)
+                        $("#lis").append($("<input type='hidden' name='hide' id='hide' value='"+strjson+"' />"))
+                        $.ajax(
+                        {
+                            url:"/saveData",
+                            type:"POST",
+                            data:{"hide":$("#hide").val()},
+
+                        }
+                        )
+                        /*
+                            在这里把strjson传过去就行
+                        */
+                        alert("保存成功！")
+                    }
+                    /**********************************************************************************************/
+                },
+                error:function (e) {
+                    alert("error");
+                }
+            }
+        )
+
+    }
+
+    function clear(){
+        $("#post1").val("");
+    }
+    </script>
+
+    <style>
+        h1 {
+            position:relative;
+            top:160px;
+            left:700px;
+            right:50%;
+            font-family:黑体-简,华文宋体;
+            font-size:50px;
+            color:red;
+        }
+
+        #pleaseTypeInTheCase {
+            position:relative;
+            top:140px;
+            left:530px;
+            font-family:华文宋体;
+            font-size:30px;
+        }
+
+        #post1 {
+            position:relative;
+            top:150px;
+            left:530px;
+            width:700px;
+            height:400px;
+        }
+
+        #submit{
+            position:relative;
+            top:130px;
+            left:700px;
+            width:100px;
+            height:40px;
+            background-color:yellow;
+            font-size:20px;
+            color:red;
+        }
+
+        #clearButt{
+            position:relative;
+            top:130px;
+            left:800px;
+            width:120px;
+            height:40px;
+            font-size:20px;
+        }
+
+        #lis {
+            position:relative;
+            width:1300px;
+            top:140px;
+            left:230px;
+            font-size:30px;
+            font-family:楷体-简;
+            border:solid;
+        }
+
+        #sifaPic {
+            position:absolute;
+            width:150px;
+            top:20px;
+            left:800px;
+        }
+
+        #storebtn {
+            position:relative;
+            width:170px;
+            height:30px;
+            font-size:20px;
+        }
+
+        #memberInfo {
+            position:absolute;
+            top:40px;
+            width:230px;
+            left:1270px;
+        }
+
+        #characterFa {
+            position:absolute;
+            left:620px;
+            width:80px;
+            top:180px;
+        }
+
+        #processTeaching {
+            position:absolute;
+            top:300px;
+            width:280px;
+            left:1250px;
+        }
+
+
+    </style>
+</head>
+<body>
+<!--    <img src="http://imagepphcloud.thepaper.cn/pph/image/149/80/8.jpg" id="sifaPic"/>-->
+     <img src="static/司法.jpeg" id="sifaPic" />
+    <img src="static/组员信息.JPG" id="memberInfo" />
+    <img src="static/法字印章.JPG" id="characterFa" />
+    <img src="static/操作步骤.JPG" id="processTeaching" />
+     <h1>裁判文书分析器</h1>
+     <div>
+         <label id="pleaseTypeInTheCase">请输入案件:</label>
+         <br>
+         <textarea name="post1" id="post1" placeholder="输入案件"></textarea>
+     </div>
+        <br>
+        <button onclick='fun1()' id="submit"> 提交案件</button>
+        <input type="button" id="clearButt" value="清空输入框" />
+        <script type="text/javascript">
+        $("#clearButt").click(function (){undefined
+        $("#post1").val('');
+        })
+        </script>
+        <div id="lis"></div>
+</body>
+
+</html>
+
